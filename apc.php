@@ -66,7 +66,7 @@ $time = time();
 $host = php_uname('n');
 if($host) { $host = '('.$host.')'; }
 if (isset($_SERVER['SERVER_ADDR'])) {
-  $host .= ' ('.$_SERVER['SERVER_ADDR'].')';
+	$host .= ' ('.$_SERVER['SERVER_ADDR'].')';
 }
 
 // operation constants
@@ -182,7 +182,7 @@ if ($AUTHENTICATED && !empty($MYREQUEST['DU'])) {
 
 if(!function_exists('apcu_cache_info')) {
 	echo "No cache info available.  APC does not appear to be running.";
-  exit;
+	exit;
 }
 
 $cache = apcu_cache_info();
@@ -196,25 +196,25 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");                                    // HTTP/1.0
 
 function duration($ts) {
-    global $time;
-    $years = (int)((($time - $ts)/(7*86400))/52.177457);
-    $rem = (int)(($time-$ts)-($years * 52.177457 * 7 * 86400));
-    $weeks = (int)(($rem)/(7*86400));
-    $days = (int)(($rem)/86400) - $weeks*7;
-    $hours = (int)(($rem)/3600) - $days*24 - $weeks*7*24;
-    $mins = (int)(($rem)/60) - $hours*60 - $days*24*60 - $weeks*7*24*60;
-    $str = '';
-    if($years==1) $str .= "$years year, ";
-    if($years>1) $str .= "$years years, ";
-    if($weeks==1) $str .= "$weeks week, ";
-    if($weeks>1) $str .= "$weeks weeks, ";
-    if($days==1) $str .= "$days day,";
-    if($days>1) $str .= "$days days,";
-    if($hours == 1) $str .= " $hours hour and";
-    if($hours>1) $str .= " $hours hours and";
-    if($mins == 1) $str .= " 1 minute";
-    else $str .= " $mins minutes";
-    return $str;
+	global $time;
+	$years = (int)((($time - $ts)/(7*86400))/52.177457);
+	$rem = (int)(($time-$ts)-($years * 52.177457 * 7 * 86400));
+	$weeks = (int)(($rem)/(7*86400));
+	$days = (int)(($rem)/86400) - $weeks*7;
+	$hours = (int)(($rem)/3600) - $days*24 - $weeks*7*24;
+	$mins = (int)(($rem)/60) - $hours*60 - $days*24*60 - $weeks*7*24*60;
+	$str = '';
+	if($years==1) $str .= "$years year, ";
+	if($years>1) $str .= "$years years, ";
+	if($weeks==1) $str .= "$weeks week, ";
+	if($weeks>1) $str .= "$weeks weeks, ";
+	if($days==1) $str .= "$days day,";
+	if($days>1) $str .= "$days days,";
+	if($hours == 1) $str .= " $hours hour and";
+	if($hours>1) $str .= " $hours hours and";
+	if($mins == 1) $str .= " 1 minute";
+	else $str .= " $mins minutes";
+	return $str;
 }
 
 // create graphics
@@ -323,105 +323,105 @@ if (isset($MYREQUEST['IMG']))
 
 	switch ($MYREQUEST['IMG']) {
 
-	case 1:
-		$s=$mem['num_seg']*$mem['seg_size'];
-		$a=$mem['avail_mem'];
-		$x=$y=$size/2;
-		$fuzz = 0.000001;
+		case 1:
+			$s=$mem['num_seg']*$mem['seg_size'];
+			$a=$mem['avail_mem'];
+			$x=$y=$size/2;
+			$fuzz = 0.000001;
 
-		// This block of code creates the pie chart.  It is a lot more complex than you
-		// would expect because we try to visualize any memory fragmentation as well.
-		$angle_from = 0;
-		$string_placement=array();
-		for($i=0; $i<$mem['num_seg']; $i++) {
-			$ptr = 0;
-			$free = $mem['block_lists'][$i];
-			uasort($free, 'block_sort');
-			foreach($free as $block) {
-				if($block['offset']!=$ptr) {       // Used block
-					$angle_to = $angle_from+($block['offset']-$ptr)/$s;
+			// This block of code creates the pie chart.  It is a lot more complex than you
+			// would expect because we try to visualize any memory fragmentation as well.
+			$angle_from = 0;
+			$string_placement=array();
+			for($i=0; $i<$mem['num_seg']; $i++) {
+				$ptr = 0;
+				$free = $mem['block_lists'][$i];
+				uasort($free, 'block_sort');
+				foreach($free as $block) {
+					if($block['offset']!=$ptr) {       // Used block
+						$angle_to = $angle_from+($block['offset']-$ptr)/$s;
+						if(($angle_to+$fuzz)>1) $angle_to = 1;
+						if( ($angle_to*360) - ($angle_from*360) >= 1) {
+							fill_arc($image,$x,$y,$size,$angle_from*360,$angle_to*360,$col_black,$col_red);
+							if (($angle_to-$angle_from)>0.05) {
+								array_push($string_placement, array($angle_from,$angle_to));
+							}
+						}
+						$angle_from = $angle_to;
+					}
+					$angle_to = $angle_from+($block['size'])/$s;
 					if(($angle_to+$fuzz)>1) $angle_to = 1;
 					if( ($angle_to*360) - ($angle_from*360) >= 1) {
-						fill_arc($image,$x,$y,$size,$angle_from*360,$angle_to*360,$col_black,$col_red);
+						fill_arc($image,$x,$y,$size,$angle_from*360,$angle_to*360,$col_black,$col_green);
 						if (($angle_to-$angle_from)>0.05) {
 							array_push($string_placement, array($angle_from,$angle_to));
 						}
 					}
 					$angle_from = $angle_to;
+					$ptr = $block['offset']+$block['size'];
 				}
-				$angle_to = $angle_from+($block['size'])/$s;
-				if(($angle_to+$fuzz)>1) $angle_to = 1;
-				if( ($angle_to*360) - ($angle_from*360) >= 1) {
-					fill_arc($image,$x,$y,$size,$angle_from*360,$angle_to*360,$col_black,$col_green);
+				if ($ptr < $mem['seg_size']) { // memory at the end
+					$angle_to = $angle_from + ($mem['seg_size'] - $ptr)/$s;
+					if(($angle_to+$fuzz)>1) $angle_to = 1;
+					fill_arc($image,$x,$y,$size,$angle_from*360,$angle_to*360,$col_black,$col_red);
 					if (($angle_to-$angle_from)>0.05) {
 						array_push($string_placement, array($angle_from,$angle_to));
 					}
 				}
-				$angle_from = $angle_to;
-				$ptr = $block['offset']+$block['size'];
 			}
-			if ($ptr < $mem['seg_size']) { // memory at the end
-				$angle_to = $angle_from + ($mem['seg_size'] - $ptr)/$s;
-				if(($angle_to+$fuzz)>1) $angle_to = 1;
-				fill_arc($image,$x,$y,$size,$angle_from*360,$angle_to*360,$col_black,$col_red);
-				if (($angle_to-$angle_from)>0.05) {
-					array_push($string_placement, array($angle_from,$angle_to));
-				}
+			foreach ($string_placement as $angle) {
+				text_arc($image,$x,$y,$size,$angle[0]*360,$angle[1]*360,$col_black,bsize($s*($angle[1]-$angle[0])));
 			}
-		}
-		foreach ($string_placement as $angle) {
-			text_arc($image,$x,$y,$size,$angle[0]*360,$angle[1]*360,$col_black,bsize($s*($angle[1]-$angle[0])));
-		}
-		break;
+			break;
 
-	case 2:
-		$s=$cache['num_hits']+$cache['num_misses'];
-		$a=$cache['num_hits'];
+		case 2:
+			$s=$cache['num_hits']+$cache['num_misses'];
+			$a=$cache['num_hits'];
 
-		fill_box($image, 30,$size,50,$s ? (-$a*($size-21)/$s) : 0,$col_black,$col_green,sprintf("%.1f%%",$s ? $cache['num_hits']*100/$s : 0));
-		fill_box($image,130,$size,50,$s ? -max(4,($s-$a)*($size-21)/$s) : 0,$col_black,$col_red,sprintf("%.1f%%",$s ? $cache['num_misses']*100/$s : 0));
-		break;
+			fill_box($image, 30,$size,50,$s ? (-$a*($size-21)/$s) : 0,$col_black,$col_green,sprintf("%.1f%%",$s ? $cache['num_hits']*100/$s : 0));
+			fill_box($image,130,$size,50,$s ? -max(4,($s-$a)*($size-21)/$s) : 0,$col_black,$col_red,sprintf("%.1f%%",$s ? $cache['num_misses']*100/$s : 0));
+			break;
 
-	case 3:
-		$s=$mem['num_seg']*$mem['seg_size'];
-		$a=$mem['avail_mem'];
-		$x=130;
-		$y=1;
-		$j=1;
+		case 3:
+			$s=$mem['num_seg']*$mem['seg_size'];
+			$a=$mem['avail_mem'];
+			$x=130;
+			$y=1;
+			$j=1;
 
-		// This block of code creates the bar chart.  It is a lot more complex than you
-		// would expect because we try to visualize any memory fragmentation as well.
-		for($i=0; $i<$mem['num_seg']; $i++) {
-			$ptr = 0;
-			$free = $mem['block_lists'][$i];
-			uasort($free, 'block_sort');
-			foreach($free as $block) {
-				if($block['offset']!=$ptr) {       // Used block
-					$h=(GRAPH_SIZE-5)*($block['offset']-$ptr)/$s;
+			// This block of code creates the bar chart.  It is a lot more complex than you
+			// would expect because we try to visualize any memory fragmentation as well.
+			for($i=0; $i<$mem['num_seg']; $i++) {
+				$ptr = 0;
+				$free = $mem['block_lists'][$i];
+				uasort($free, 'block_sort');
+				foreach($free as $block) {
+					if($block['offset']!=$ptr) {       // Used block
+						$h=(GRAPH_SIZE-5)*($block['offset']-$ptr)/$s;
+						if ($h>0) {
+							$j++;
+							if($j<75) fill_box($image,$x,$y,50,$h,$col_black,$col_red,bsize($block['offset']-$ptr),$j);
+							else fill_box($image,$x,$y,50,$h,$col_black,$col_red);
+						}
+						$y+=$h;
+					}
+					$h=(GRAPH_SIZE-5)*($block['size'])/$s;
 					if ($h>0) {
-                                                $j++;
-						if($j<75) fill_box($image,$x,$y,50,$h,$col_black,$col_red,bsize($block['offset']-$ptr),$j);
-                                                else fill_box($image,$x,$y,50,$h,$col_black,$col_red);
-                                        }
+						$j++;
+						if($j<75) fill_box($image,$x,$y,50,$h,$col_black,$col_green,bsize($block['size']),$j);
+						else fill_box($image,$x,$y,50,$h,$col_black,$col_green);
+					}
 					$y+=$h;
+					$ptr = $block['offset']+$block['size'];
 				}
-				$h=(GRAPH_SIZE-5)*($block['size'])/$s;
-				if ($h>0) {
-                                        $j++;
-					if($j<75) fill_box($image,$x,$y,50,$h,$col_black,$col_green,bsize($block['size']),$j);
-					else fill_box($image,$x,$y,50,$h,$col_black,$col_green);
-                                }
-				$y+=$h;
-				$ptr = $block['offset']+$block['size'];
-			}
-			if ($ptr < $mem['seg_size']) { // memory at the end
-				$h = (GRAPH_SIZE-5) * ($mem['seg_size'] - $ptr) / $s;
-				if ($h > 0) {
-					fill_box($image,$x,$y,50,$h,$col_black,$col_red,bsize($mem['seg_size']-$ptr),$j++);
+				if ($ptr < $mem['seg_size']) { // memory at the end
+					$h = (GRAPH_SIZE-5) * ($mem['seg_size'] - $ptr) / $s;
+					if ($h > 0) {
+						fill_box($image,$x,$y,50,$h,$col_black,$col_red,bsize($mem['seg_size']-$ptr),$j++);
+					}
 				}
 			}
-		}
-		break;
+			break;
 
 		case 4:
 			$s=$cache['num_hits']+$cache['num_misses'];
@@ -429,7 +429,7 @@ if (isset($MYREQUEST['IMG']))
 
 			fill_box($image, 30,$size,50,$s ? -$a*($size-21)/$s : 0,$col_black,$col_green,sprintf("%.1f%%", $s ? $cache['num_hits']*100/$s : 0));
 			fill_box($image,130,$size,50,$s ? -max(4,($s-$a)*($size-21)/$s) : 0,$col_black,$col_red,sprintf("%.1f%%", $s ? $cache['num_misses']*100/$s : 0));
-		break;
+			break;
 	}
 
 	header("Content-type: image/png");
@@ -507,202 +507,202 @@ function block_sort($array1, $array2)
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head><title>APCu INFO <?php echo $host ?></title>
-<style><!--
-body { background:white; font-size:100.01%; margin:0; padding:0; }
-body,p,td,th,input,submit { font-size:0.8em;font-family:arial,helvetica,sans-serif; }
-* html body   {font-size:0.8em}
-* html p      {font-size:0.8em}
-* html td     {font-size:0.8em}
-* html th     {font-size:0.8em}
-* html input  {font-size:0.8em}
-* html submit {font-size:0.8em}
-td { vertical-align:top }
-a { color:black; font-weight:none; text-decoration:none; }
-a:hover { text-decoration:underline; }
-div.content { padding:1em 1em 1em 1em; position:absolute; width:97%; z-index:100; }
+	<style><!--
+		body { background:white; font-size:100.01%; margin:0; padding:0; }
+		body,p,td,th,input,submit { font-size:0.8em;font-family:arial,helvetica,sans-serif; }
+		* html body   {font-size:0.8em}
+		* html p      {font-size:0.8em}
+		* html td     {font-size:0.8em}
+		* html th     {font-size:0.8em}
+		* html input  {font-size:0.8em}
+		* html submit {font-size:0.8em}
+		td { vertical-align:top }
+		a { color:black; font-weight:none; text-decoration:none; }
+		a:hover { text-decoration:underline; }
+		div.content { padding:1em 1em 1em 1em; position:absolute; width:97%; z-index:100; }
 
 
-div.head div.login {
-	position:absolute;
-	right: 1em;
-	top: 1.2em;
-	color:white;
-	width:6em;
-	}
-div.head div.login a {
-	position:absolute;
-	right: 0em;
-	background:rgb(119,123,180);
-	border:solid rgb(102,102,153) 2px;
-	color:white;
-	font-weight:bold;
-	padding:0.1em 0.5em 0.1em 0.5em;
-	text-decoration:none;
-	}
-div.head div.login a:hover {
-	background:rgb(193,193,244);
-	}
+		div.head div.login {
+			position:absolute;
+			right: 1em;
+			top: 1.2em;
+			color:white;
+			width:6em;
+		}
+		div.head div.login a {
+			position:absolute;
+			right: 0em;
+			background:rgb(119,123,180);
+			border:solid rgb(102,102,153) 2px;
+			color:white;
+			font-weight:bold;
+			padding:0.1em 0.5em 0.1em 0.5em;
+			text-decoration:none;
+		}
+		div.head div.login a:hover {
+			background:rgb(193,193,244);
+		}
 
-h1.apc { background:rgb(153,153,204); margin:0; padding:0.5em 1em 0.5em 1em; }
-* html h1.apc { margin-bottom:-7px; }
-h1.apc a:hover { text-decoration:none; color:rgb(90,90,90); }
-h1.apc div.logo span.logo {
-	background:rgb(119,123,180);
-	color:black;
-	border-right: solid black 1px;
-	border-bottom: solid black 1px;
-	font-style:italic;
-	font-size:1em;
-	padding-left:1.2em;
-	padding-right:1.2em;
-	text-align:right;
-	}
-h1.apc div.logo span.name { color:white; font-size:0.7em; padding:0 0.8em 0 2em; }
-h1.apc div.nameinfo { color:white; display:inline; font-size:0.4em; margin-left: 3em; }
-h1.apc div.copy { color:black; font-size:0.4em; position:absolute; right:1em; }
-hr.apc {
-	background:white;
-	border-bottom:solid rgb(102,102,153) 1px;
-	border-style:none;
-	border-top:solid rgb(102,102,153) 10px;
-	height:12px;
-	margin:0;
-	margin-top:1px;
-	padding:0;
-}
+		h1.apc { background:rgb(153,153,204); margin:0; padding:0.5em 1em 0.5em 1em; }
+		* html h1.apc { margin-bottom:-7px; }
+		h1.apc a:hover { text-decoration:none; color:rgb(90,90,90); }
+		h1.apc div.logo span.logo {
+			background:rgb(119,123,180);
+			color:black;
+			border-right: solid black 1px;
+			border-bottom: solid black 1px;
+			font-style:italic;
+			font-size:1em;
+			padding-left:1.2em;
+			padding-right:1.2em;
+			text-align:right;
+		}
+		h1.apc div.logo span.name { color:white; font-size:0.7em; padding:0 0.8em 0 2em; }
+		h1.apc div.nameinfo { color:white; display:inline; font-size:0.4em; margin-left: 3em; }
+		h1.apc div.copy { color:black; font-size:0.4em; position:absolute; right:1em; }
+		hr.apc {
+			background:white;
+			border-bottom:solid rgb(102,102,153) 1px;
+			border-style:none;
+			border-top:solid rgb(102,102,153) 10px;
+			height:12px;
+			margin:0;
+			margin-top:1px;
+			padding:0;
+		}
 
-ol,menu { margin:1em 0 0 0; padding:0.2em; margin-left:1em;}
-ol.menu li { display:inline; margin-right:0.7em; list-style:none; font-size:85%}
-ol.menu a {
-	background:rgb(153,153,204);
-	border:solid rgb(102,102,153) 2px;
-	color:white;
-	font-weight:bold;
-	margin-right:0em;
-	padding:0.1em 0.5em 0.1em 0.5em;
-	text-decoration:none;
-	margin-left: 5px;
-	}
-ol.menu a.child_active {
-	background:rgb(153,153,204);
-	border:solid rgb(102,102,153) 2px;
-	color:white;
-	font-weight:bold;
-	margin-right:0em;
-	padding:0.1em 0.5em 0.1em 0.5em;
-	text-decoration:none;
-	border-left: solid black 5px;
-	margin-left: 0px;
-	}
-ol.menu span.active {
-	background:rgb(153,153,204);
-	border:solid rgb(102,102,153) 2px;
-	color:black;
-	font-weight:bold;
-	margin-right:0em;
-	padding:0.1em 0.5em 0.1em 0.5em;
-	text-decoration:none;
-	border-left: solid black 5px;
-	}
-ol.menu span.inactive {
-	background:rgb(193,193,244);
-	border:solid rgb(182,182,233) 2px;
-	color:white;
-	font-weight:bold;
-	margin-right:0em;
-	padding:0.1em 0.5em 0.1em 0.5em;
-	text-decoration:none;
-	margin-left: 5px;
-	}
-ol.menu a:hover {
-	background:rgb(193,193,244);
-	text-decoration:none;
-	}
+		ol,menu { margin:1em 0 0 0; padding:0.2em; margin-left:1em;}
+		ol.menu li { display:inline; margin-right:0.7em; list-style:none; font-size:85%}
+		ol.menu a {
+			background:rgb(153,153,204);
+			border:solid rgb(102,102,153) 2px;
+			color:white;
+			font-weight:bold;
+			margin-right:0em;
+			padding:0.1em 0.5em 0.1em 0.5em;
+			text-decoration:none;
+			margin-left: 5px;
+		}
+		ol.menu a.child_active {
+			background:rgb(153,153,204);
+			border:solid rgb(102,102,153) 2px;
+			color:white;
+			font-weight:bold;
+			margin-right:0em;
+			padding:0.1em 0.5em 0.1em 0.5em;
+			text-decoration:none;
+			border-left: solid black 5px;
+			margin-left: 0px;
+		}
+		ol.menu span.active {
+			background:rgb(153,153,204);
+			border:solid rgb(102,102,153) 2px;
+			color:black;
+			font-weight:bold;
+			margin-right:0em;
+			padding:0.1em 0.5em 0.1em 0.5em;
+			text-decoration:none;
+			border-left: solid black 5px;
+		}
+		ol.menu span.inactive {
+			background:rgb(193,193,244);
+			border:solid rgb(182,182,233) 2px;
+			color:white;
+			font-weight:bold;
+			margin-right:0em;
+			padding:0.1em 0.5em 0.1em 0.5em;
+			text-decoration:none;
+			margin-left: 5px;
+		}
+		ol.menu a:hover {
+			background:rgb(193,193,244);
+			text-decoration:none;
+		}
 
 
-div.info {
-	background:rgb(204,204,204);
-	border:solid rgb(204,204,204) 1px;
-	margin-bottom:1em;
-	}
-div.info h2 {
-	background:rgb(204,204,204);
-	color:black;
-	font-size:1em;
-	margin:0;
-	padding:0.1em 1em 0.1em 1em;
-	}
-div.info table {
-	border:solid rgb(204,204,204) 1px;
-	border-spacing:0;
-	width:100%;
-	}
-div.info table th {
-	background:rgb(204,204,204);
-	color:white;
-	margin:0;
-	padding:0.1em 1em 0.1em 1em;
-	}
-div.info table th a.sortable { color:black; }
-div.info table tr.tr-0 { background:rgb(238,238,238); }
-div.info table tr.tr-1 { background:rgb(221,221,221); }
-div.info table td { padding:0.3em 1em 0.3em 1em; }
-div.info table td.td-0 { border-right:solid rgb(102,102,153) 1px; white-space:nowrap; }
-div.info table td.td-n { border-right:solid rgb(102,102,153) 1px; }
-div.info table td h3 {
-	color:black;
-	font-size:1.1em;
-	margin-left:-0.3em;
-	}
+		div.info {
+			background:rgb(204,204,204);
+			border:solid rgb(204,204,204) 1px;
+			margin-bottom:1em;
+		}
+		div.info h2 {
+			background:rgb(204,204,204);
+			color:black;
+			font-size:1em;
+			margin:0;
+			padding:0.1em 1em 0.1em 1em;
+		}
+		div.info table {
+			border:solid rgb(204,204,204) 1px;
+			border-spacing:0;
+			width:100%;
+		}
+		div.info table th {
+			background:rgb(204,204,204);
+			color:white;
+			margin:0;
+			padding:0.1em 1em 0.1em 1em;
+		}
+		div.info table th a.sortable { color:black; }
+		div.info table tr.tr-0 { background:rgb(238,238,238); }
+		div.info table tr.tr-1 { background:rgb(221,221,221); }
+		div.info table td { padding:0.3em 1em 0.3em 1em; }
+		div.info table td.td-0 { border-right:solid rgb(102,102,153) 1px; white-space:nowrap; }
+		div.info table td.td-n { border-right:solid rgb(102,102,153) 1px; }
+		div.info table td h3 {
+			color:black;
+			font-size:1.1em;
+			margin-left:-0.3em;
+		}
 
-div.graph { margin-bottom:1em }
-div.graph h2 { background:rgb(204,204,204);; color:black; font-size:1em; margin:0; padding:0.1em 1em 0.1em 1em; }
-div.graph table { border:solid rgb(204,204,204) 1px; color:black; font-weight:normal; width:100%; }
-div.graph table td.td-0 { background:rgb(238,238,238); }
-div.graph table td.td-1 { background:rgb(221,221,221); }
-div.graph table td { padding:0.2em 1em 0.4em 1em; }
+		div.graph { margin-bottom:1em }
+		div.graph h2 { background:rgb(204,204,204);; color:black; font-size:1em; margin:0; padding:0.1em 1em 0.1em 1em; }
+		div.graph table { border:solid rgb(204,204,204) 1px; color:black; font-weight:normal; width:100%; }
+		div.graph table td.td-0 { background:rgb(238,238,238); }
+		div.graph table td.td-1 { background:rgb(221,221,221); }
+		div.graph table td { padding:0.2em 1em 0.4em 1em; }
 
-div.div1,div.div2 { margin-bottom:1em; width:35em; }
-div.div3 { position:absolute; left:40em; top:1em; width:580px; }
-//div.div3 { position:absolute; left:37em; top:1em; right:1em; }
+		div.div1,div.div2 { margin-bottom:1em; width:35em; }
+		div.div3 { position:absolute; left:40em; top:1em; width:580px; }
+		//div.div3 { position:absolute; left:37em; top:1em; right:1em; }
 
-div.sorting { margin:1.5em 0em 1.5em 2em }
-.center { text-align:center }
-.aright { position:absolute;right:1em }
-.right { text-align:right }
-.ok { color:rgb(0,200,0); font-weight:bold}
-.failed { color:rgb(200,0,0); font-weight:bold}
+		div.sorting { margin:1.5em 0em 1.5em 2em }
+		.center { text-align:center }
+		.aright { position:absolute;right:1em }
+		.right { text-align:right }
+		.ok { color:rgb(0,200,0); font-weight:bold}
+		.failed { color:rgb(200,0,0); font-weight:bold}
 
-span.box {
-	border: black solid 1px;
-	border-right:solid black 2px;
-	border-bottom:solid black 2px;
-	padding:0 0.5em 0 0.5em;
-	margin-right:1em;
-}
-span.green { background:#60F060; padding:0 0.5em 0 0.5em}
-span.red { background:#D06030; padding:0 0.5em 0 0.5em }
+		span.box {
+			border: black solid 1px;
+			border-right:solid black 2px;
+			border-bottom:solid black 2px;
+			padding:0 0.5em 0 0.5em;
+			margin-right:1em;
+		}
+		span.green { background:#60F060; padding:0 0.5em 0 0.5em}
+		span.red { background:#D06030; padding:0 0.5em 0 0.5em }
 
-div.authneeded {
-	background:rgb(238,238,238);
-	border:solid rgb(204,204,204) 1px;
-	color:rgb(200,0,0);
-	font-size:1.2em;
-	font-weight:bold;
-	padding:2em;
-	text-align:center;
-	}
+		div.authneeded {
+			background:rgb(238,238,238);
+			border:solid rgb(204,204,204) 1px;
+			color:rgb(200,0,0);
+			font-size:1.2em;
+			font-weight:bold;
+			padding:2em;
+			text-align:center;
+		}
 
-input {
-	background:rgb(153,153,204);
-	border:solid rgb(102,102,153) 2px;
-	color:white;
-	font-weight:bold;
-	margin-right:1em;
-	padding:0.1em 0.5em 0.1em 0.5em;
-	}
-//-->
-</style>
+		input {
+			background:rgb(153,153,204);
+			border:solid rgb(102,102,153) 2px;
+			color:white;
+			font-weight:bold;
+			margin-right:1em;
+			padding:0.1em 0.5em 0.1em 0.5em;
+		}
+		//-->
+	</style>
 </head>
 <body>
 <div class="head">
@@ -711,7 +711,7 @@ input {
 		<div class="nameinfo">User Cache</div>
 	</h1>
 	<div class="login">
-	<?php put_login_link(); ?>
+		<?php put_login_link(); ?>
 	</div>
 	<hr class="apc">
 </div>
@@ -723,9 +723,9 @@ echo <<<EOB
 	<li><a href="$MY_SELF&OB={$MYREQUEST['OB']}&SH={$MYREQUEST['SH']}">Refresh Data</a></li>
 EOB;
 echo
-	menu_entry(OB_HOST_STATS,'View Host Stats'),
-	menu_entry(OB_USER_CACHE,'User Cache Entries'),
-	menu_entry(OB_VERSION_CHECK,'Version Check');
+menu_entry(OB_HOST_STATS,'View Host Stats'),
+menu_entry(OB_USER_CACHE,'User Cache Entries'),
+menu_entry(OB_VERSION_CHECK,'Version Check');
 
 if ($AUTHENTICATED) {
 	echo <<<EOB
@@ -748,41 +748,41 @@ switch ($MYREQUEST['OB']) {
 // -----------------------------------------------
 // Host Stats
 // -----------------------------------------------
-case OB_HOST_STATS:
-	$mem_size = $mem['num_seg']*$mem['seg_size'];
-	$mem_avail= $mem['avail_mem'];
-	$mem_used = $mem_size-$mem_avail;
-	$seg_size = bsize($mem['seg_size']);
-	$req_rate_user = sprintf("%.2f", $cache['num_hits'] ? (($cache['num_hits']+$cache['num_misses'])/($time-$cache['start_time'])) : 0);
-	$hit_rate_user = sprintf("%.2f", $cache['num_hits'] ? (($cache['num_hits'])/($time-$cache['start_time'])) : 0);
-	$miss_rate_user = sprintf("%.2f", $cache['num_misses'] ? (($cache['num_misses'])/($time-$cache['start_time'])) : 0);
-	$insert_rate_user = sprintf("%.2f", $cache['num_inserts'] ? (($cache['num_inserts'])/($time-$cache['start_time'])) : 0);
-	$apcversion = phpversion('apcu');
-	$phpversion = phpversion();
-	$number_vars = $cache['num_entries'];
-    $size_vars = bsize($cache['mem_size']);
-	$i=0;
-	echo <<< EOB
+	case OB_HOST_STATS:
+		$mem_size = $mem['num_seg']*$mem['seg_size'];
+		$mem_avail= $mem['avail_mem'];
+		$mem_used = $mem_size-$mem_avail;
+		$seg_size = bsize($mem['seg_size']);
+		$req_rate_user = sprintf("%.2f", $cache['num_hits'] ? (($cache['num_hits']+$cache['num_misses'])/($time-$cache['start_time'])) : 0);
+		$hit_rate_user = sprintf("%.2f", $cache['num_hits'] ? (($cache['num_hits'])/($time-$cache['start_time'])) : 0);
+		$miss_rate_user = sprintf("%.2f", $cache['num_misses'] ? (($cache['num_misses'])/($time-$cache['start_time'])) : 0);
+		$insert_rate_user = sprintf("%.2f", $cache['num_inserts'] ? (($cache['num_inserts'])/($time-$cache['start_time'])) : 0);
+		$apcversion = phpversion('apcu');
+		$phpversion = phpversion();
+		$number_vars = $cache['num_entries'];
+		$size_vars = bsize($cache['mem_size']);
+		$i=0;
+		echo <<< EOB
 		<div class="info div1"><h2>General Cache Information</h2>
 		<table cellspacing=0><tbody>
 		<tr class=tr-0><td class=td-0>APCu Version</td><td>$apcversion</td></tr>
 		<tr class=tr-1><td class=td-0>PHP Version</td><td>$phpversion</td></tr>
 EOB;
 
-	if(!empty($_SERVER['SERVER_NAME']))
-		echo "<tr class=tr-0><td class=td-0>APCu Host</td><td>{$_SERVER['SERVER_NAME']} $host</td></tr>\n";
-	if(!empty($_SERVER['SERVER_SOFTWARE']))
-		echo "<tr class=tr-1><td class=td-0>Server Software</td><td>{$_SERVER['SERVER_SOFTWARE']}</td></tr>\n";
+		if(!empty($_SERVER['SERVER_NAME']))
+			echo "<tr class=tr-0><td class=td-0>APCu Host</td><td>{$_SERVER['SERVER_NAME']} $host</td></tr>\n";
+		if(!empty($_SERVER['SERVER_SOFTWARE']))
+			echo "<tr class=tr-1><td class=td-0>Server Software</td><td>{$_SERVER['SERVER_SOFTWARE']}</td></tr>\n";
 
-	echo <<<EOB
+		echo <<<EOB
 		<tr class=tr-0><td class=td-0>Shared Memory</td><td>{$mem['num_seg']} Segment(s) with $seg_size
     <br/> ({$cache['memory_type']} memory)
     </td></tr>
 EOB;
-	echo   '<tr class=tr-1><td class=td-0>Start Time</td><td>',date(DATE_FORMAT,$cache['start_time']),'</td></tr>';
-	echo   '<tr class=tr-0><td class=td-0>Uptime</td><td>',duration($cache['start_time']),'</td></tr>';
-	echo   '<tr class=tr-1><td class=td-0>File Upload Support</td><td>',$cache['file_upload_progress'],'</td></tr>';
-	echo <<<EOB
+		echo   '<tr class=tr-1><td class=td-0>Start Time</td><td>',date(DATE_FORMAT,$cache['start_time']),'</td></tr>';
+		echo   '<tr class=tr-0><td class=td-0>Uptime</td><td>',duration($cache['start_time']),'</td></tr>';
+		echo   '<tr class=tr-1><td class=td-0>File Upload Support</td><td>',$cache['file_upload_progress'],'</td></tr>';
+		echo <<<EOB
 		</tbody></table>
 		</div>
 
@@ -804,38 +804,38 @@ EOB;
 		<div class="info div2"><h2>Runtime Settings</h2><table cellspacing=0><tbody>
 EOB;
 
-	$j = 0;
-	foreach (ini_get_all('apcu') as $k => $v) {
-		echo "<tr class=tr-$j><td class=td-0>",$k,"</td><td>",str_replace(',',',<br />',$v['local_value']),"</td></tr>\n";
-		$j = 1 - $j;
-	}
+		$j = 0;
+		foreach (ini_get_all('apcu') as $k => $v) {
+			echo "<tr class=tr-$j><td class=td-0>",$k,"</td><td>",str_replace(',',',<br />',$v['local_value']),"</td></tr>\n";
+			$j = 1 - $j;
+		}
 
-	if($mem['num_seg']>1 || $mem['num_seg']==1 && count($mem['block_lists'][0])>1)
-		$mem_note = "Memory Usage<br /><font size=-2>(multiple slices indicate fragments)</font>";
-	else
-		$mem_note = "Memory Usage";
+		if($mem['num_seg']>1 || $mem['num_seg']==1 && count($mem['block_lists'][0])>1)
+			$mem_note = "Memory Usage<br /><font size=-2>(multiple slices indicate fragments)</font>";
+		else
+			$mem_note = "Memory Usage";
 
-	echo <<< EOB
+		echo <<< EOB
 		</tbody></table>
 		</div>
 
 		<div class="graph div3"><h2>Host Status Diagrams</h2>
 		<table cellspacing=0><tbody>
 EOB;
-	$size='width='.(GRAPH_SIZE+50).' height='.(GRAPH_SIZE+10);
-echo <<<EOB
+		$size='width='.(GRAPH_SIZE+50).' height='.(GRAPH_SIZE+10);
+		echo <<<EOB
 		<tr>
 		<td class=td-0>$mem_note</td>
 		<td class=td-1>Hits &amp; Misses</td>
 		</tr>
 EOB;
 
-	echo
+		echo
 		graphics_avail() ?
-			  '<tr>'.
-			  "<td class=td-0><img alt=\"\" $size src=\"$PHP_SELF?IMG=1&$time\"></td>".
-			  "<td class=td-1><img alt=\"\" $size src=\"$PHP_SELF?IMG=2&$time\"></td></tr>\n"
-			: "",
+				'<tr>'.
+				"<td class=td-0><img alt=\"\" $size src=\"$PHP_SELF?IMG=1&$time\"></td>".
+				"<td class=td-1><img alt=\"\" $size src=\"$PHP_SELF?IMG=2&$time\"></td></tr>\n"
+				: "",
 		'<tr>',
 		'<td class=td-0><span class="green box">&nbsp;</span>Free: ',bsize($mem_avail).sprintf(" (%.1f%%)",$mem_avail*100/$mem_size),"</td>\n",
 		'<td class=td-1><span class="green box">&nbsp;</span>Hits: ',$cache['num_hits'].@sprintf(" (%.1f%%)",$cache['num_hits']*100/($cache['num_hits']+$cache['num_misses'])),"</td>\n",
@@ -843,7 +843,7 @@ EOB;
 		'<tr>',
 		'<td class=td-0><span class="red box">&nbsp;</span>Used: ',bsize($mem_used).sprintf(" (%.1f%%)",$mem_used *100/$mem_size),"</td>\n",
 		'<td class=td-1><span class="red box">&nbsp;</span>Misses: ',$cache['num_misses'].@sprintf(" (%.1f%%)",$cache['num_misses']*100/($cache['num_hits']+$cache['num_misses'])),"</td>\n";
-	echo <<< EOB
+		echo <<< EOB
 		</tr>
 		</tbody></table>
 
@@ -854,76 +854,75 @@ EOB;
 		<td class=td-0 colspan=2><br/>
 EOB;
 
-	// Fragementation: (freeseg - 1) / total_seg
-	$nseg = $freeseg = $fragsize = $freetotal = 0;
-	for($i=0; $i<$mem['num_seg']; $i++) {
-		$ptr = 0;
-		foreach($mem['block_lists'][$i] as $block) {
-			if ($block['offset'] != $ptr) {
-				++$nseg;
+		// Fragementation: (freeseg - 1) / total_seg
+		$nseg = $freeseg = $fragsize = $freetotal = 0;
+		for($i=0; $i<$mem['num_seg']; $i++) {
+			$ptr = 0;
+			foreach($mem['block_lists'][$i] as $block) {
+				if ($block['offset'] != $ptr) {
+					++$nseg;
+				}
+				$ptr = $block['offset'] + $block['size'];
+				/* Only consider blocks <5M for the fragmentation % */
+				if($block['size']<(5*1024*1024)) $fragsize+=$block['size'];
+				$freetotal+=$block['size'];
 			}
-			$ptr = $block['offset'] + $block['size'];
-                        /* Only consider blocks <5M for the fragmentation % */
-                        if($block['size']<(5*1024*1024)) $fragsize+=$block['size'];
-                        $freetotal+=$block['size'];
+			$freeseg += count($mem['block_lists'][$i]);
 		}
-		$freeseg += count($mem['block_lists'][$i]);
-	}
 
-	if ($freeseg > 1) {
-		$frag = sprintf("%.2f%% (%s out of %s in %d fragments)", ($fragsize/$freetotal)*100,bsize($fragsize),bsize($freetotal),$freeseg);
-	} else {
-		$frag = "0%";
-	}
+		if ($freeseg > 1) {
+			$frag = sprintf("%.2f%% (%s out of %s in %d fragments)", ($fragsize/$freetotal)*100,bsize($fragsize),bsize($freetotal),$freeseg);
+		} else {
+			$frag = "0%";
+		}
 
-	if (graphics_avail()) {
-		$size='width='.(2*GRAPH_SIZE+150).' height='.(GRAPH_SIZE+10);
-		echo <<<EOB
+		if (graphics_avail()) {
+			$size='width='.(2*GRAPH_SIZE+150).' height='.(GRAPH_SIZE+10);
+			echo <<<EOB
 			<img alt="" $size src="$PHP_SELF?IMG=3&$time">
 EOB;
-	}
-	echo <<<EOB
+		}
+		echo <<<EOB
 		</br>Fragmentation: $frag
 		</td>
 		</tr>
 EOB;
-        if(isset($mem['adist'])) {
-          foreach($mem['adist'] as $i=>$v) {
-            $cur = pow(2,$i); $nxt = pow(2,$i+1)-1;
-            if($i==0) $range = "1";
-            else $range = "$cur - $nxt";
-            echo "<tr><th align=right>$range</th><td align=right>$v</td></tr>\n";
-          }
-        }
-        echo <<<EOB
+		if(isset($mem['adist'])) {
+			foreach($mem['adist'] as $i=>$v) {
+				$cur = pow(2,$i); $nxt = pow(2,$i+1)-1;
+				if($i==0) $range = "1";
+				else $range = "$cur - $nxt";
+				echo "<tr><th align=right>$range</th><td align=right>$v</td></tr>\n";
+			}
+		}
+		echo <<<EOB
 		</tbody></table>
 		</div>
 EOB;
 
-	break;
+		break;
 
 
 // -----------------------------------------------
 // User Cache Entries
 // -----------------------------------------------
-case OB_USER_CACHE:
-	if (!$AUTHENTICATED) {
-    echo '<div class="error">You need to login to see the user values here!<br/>&nbsp;<br/>';
-		put_login_link("Login now!");
-		echo '</div>';
-		break;
-	}
-	$fieldname='key';
-	$fieldheading='User Entry Label';
-	$fieldkey='key';
+	case OB_USER_CACHE:
+		if (!$AUTHENTICATED) {
+			echo '<div class="error">You need to login to see the user values here!<br/>&nbsp;<br/>';
+			put_login_link("Login now!");
+			echo '</div>';
+			break;
+		}
+		$fieldname='info';
+		$fieldheading='User Entry Label';
 
-	$cols=6;
-	echo <<<EOB
+		$cols=6;
+		echo <<<EOB
 		<div class=sorting><form>Scope:
 		<input type=hidden name=OB value={$MYREQUEST['OB']}>
 		<select name=SCOPE>
 EOB;
-	echo
+		echo
 		"<option value=A",$MYREQUEST['SCOPE']=='A' ? " selected":"",">Active</option>",
 		"<option value=D",$MYREQUEST['SCOPE']=='D' ? " selected":"",">Deleted</option>",
 		"</select>",
@@ -935,9 +934,9 @@ EOB;
 		"<option value=M",$MYREQUEST['SORT1']=='M' ? " selected":"",">Last modified</option>",
 		"<option value=C",$MYREQUEST['SORT1']=='C' ? " selected":"",">Created at</option>",
 		"<option value=D",$MYREQUEST['SORT1']=='D' ? " selected":"",">Deleted at</option>";
-	if($fieldname=='info') echo
+		if($fieldname=='info') echo
 		"<option value=D",$MYREQUEST['SORT1']=='T' ? " selected":"",">Timeout</option>";
-	echo
+		echo
 		'</select>',
 		'<select name=SORT2>',
 		'<option value=D',$MYREQUEST['SORT2']=='D' ? ' selected':'','>DESC</option>',
@@ -953,21 +952,21 @@ EOB;
 		'<option value=500',$MYREQUEST['COUNT']=='500'? ' selected':'','>Top 500</option>',
 		'<option value=0  ',$MYREQUEST['COUNT']=='0'  ? ' selected':'','>All</option>',
 		'</select>',
-    '&nbsp; Search: <input name=SEARCH value="',$MYREQUEST['SEARCH'],'" type=text size=25/>',
+		'&nbsp; Search: <input name=SEARCH value="',$MYREQUEST['SEARCH'],'" type=text size=25/>',
 		'&nbsp;<input type=submit value="GO!">',
 		'</form></div>';
 
-  if (isset($MYREQUEST['SEARCH'])) {
-   // Don't use preg_quote because we want the user to be able to specify a
-   // regular expression subpattern.
-   $MYREQUEST['SEARCH'] = '/'.str_replace('/', '\\/', $MYREQUEST['SEARCH']).'/i';
-   if (preg_match($MYREQUEST['SEARCH'], 'test') === false) {
-     echo '<div class="error">Error: enter a valid regular expression as a search query.</div>';
-     break;
-   }
-  }
+		if (isset($MYREQUEST['SEARCH'])) {
+			// Don't use preg_quote because we want the user to be able to specify a
+			// regular expression subpattern.
+			$MYREQUEST['SEARCH'] = '/'.str_replace('/', '\\/', $MYREQUEST['SEARCH']).'/i';
+			if (preg_match($MYREQUEST['SEARCH'], 'test') === false) {
+				echo '<div class="error">Error: enter a valid regular expression as a search query.</div>';
+				break;
+			}
+		}
 
-  echo
+		echo
 		'<div class="info"><table cellspacing=0><tbody>',
 		'<tr>',
 		'<th>',sortheader('S',$fieldheading,  "&OB=".$MYREQUEST['OB']),'</th>',
@@ -977,161 +976,161 @@ EOB;
 		'<th>',sortheader('M','Last modified',"&OB=".$MYREQUEST['OB']),'</th>',
 		'<th>',sortheader('C','Created at',   "&OB=".$MYREQUEST['OB']),'</th>';
 
-	if($fieldname=='info') {
-		$cols+=2;
-		 echo '<th>',sortheader('T','Timeout',"&OB=".$MYREQUEST['OB']),'</th>';
-	}
-	echo '<th>',sortheader('D','Deleted at',"&OB=".$MYREQUEST['OB']),'</th></tr>';
-
-	// builds list with alpha numeric sortable keys
-	//
-	$list = array();
-
-	foreach($cache[$scope_list[$MYREQUEST['SCOPE']]] as $i => $entry) {
-		switch($MYREQUEST['SORT1']) {
-			case 'A': $k=sprintf('%015d-',$entry['access_time']);  	    break;
-			case 'H': $k=sprintf('%015d-',$entry['num_hits']); 		    break;
-			case 'Z': $k=sprintf('%015d-',$entry['mem_size']); 		    break;
-			case 'M': $k=sprintf('%015d-',$entry['mtime']);			    break;
-			case 'C': $k=sprintf('%015d-',$entry['creation_time']);     break;
-			case 'T': $k=sprintf('%015d-',$entry['ttl']);			    break;
-			case 'D': $k=sprintf('%015d-',$entry['deletion_time']);     break;
-			case 'S': $k=$entry["info"];								break;
+		if($fieldname=='info') {
+			$cols+=2;
+			echo '<th>',sortheader('T','Timeout',"&OB=".$MYREQUEST['OB']),'</th>';
 		}
-		if (!$AUTHENTICATED) {
-			// hide all path entries if not logged in
-			$list[$k.$entry[$fieldname]]=preg_replace('/^.*(\\/|\\\\)/','*hidden*/',$entry);
-		} else {
-			$list[$k.$entry[$fieldname]]=$entry;
-		}
-	}
+		echo '<th>',sortheader('D','Deleted at',"&OB=".$MYREQUEST['OB']),'</th></tr>';
 
-	if ($list) {
-		// sort list
+		// builds list with alpha numeric sortable keys
 		//
-		switch ($MYREQUEST['SORT2']) {
-			case "A":	krsort($list);	break;
-			case "D":	ksort($list);	break;
+		$list = array();
+
+		foreach($cache[$scope_list[$MYREQUEST['SCOPE']]] as $i => $entry) {
+			switch($MYREQUEST['SORT1']) {
+				case 'A': $k=sprintf('%015d-',$entry['access_time']);  	     break;
+				case 'H': $k=sprintf('%015d-',$entry['num_hits']); 	     break;
+				case 'Z': $k=sprintf('%015d-',$entry['mem_size']); 	     break;
+				case 'M': $k=sprintf('%015d-',$entry['modification_time']);  break;
+				case 'C': $k=sprintf('%015d-',$entry['creation_time']);      break;
+				case 'T': $k=sprintf('%015d-',$entry['ttl']);		     break;
+				case 'D': $k=sprintf('%015d-',$entry['deletion_time']);      break;
+				case 'S': $k=$entry["info"];				     break;
+			}
+			if (!$AUTHENTICATED) {
+				// hide all path entries if not logged in
+				$list[$k.$entry[$fieldname]]=preg_replace('/^.*(\\/|\\\\)/','*hidden*/',$entry);
+			} else {
+				$list[$k.$entry[$fieldname]]=$entry;
+			}
 		}
 
-		// output list
-		$i=0;
-		foreach($list as $k => $entry) {
-      if(!$MYREQUEST['SEARCH'] || preg_match($MYREQUEST['SEARCH'], $entry[$fieldname]) != 0) {
-		$sh=md5($entry["info"]);
-        $field_value = htmlentities(strip_tags($entry[$fieldname],''), ENT_QUOTES, 'UTF-8');
-        echo
-          '<tr class=tr-',$i%2,'>',
-          "<td class=td-0><a href=\"$MY_SELF&OB=",$MYREQUEST['OB'],"&SH=",$sh,"\">",$field_value,'</a></td>',
-          '<td class="td-n center">',$entry['num_hits'],'</td>',
-          '<td class="td-n right">',$entry['mem_size'],'</td>',
-          '<td class="td-n center">',date(DATE_FORMAT,$entry['access_time']),'</td>',
-          '<td class="td-n center">',date(DATE_FORMAT,$entry['mtime']),'</td>',
-          '<td class="td-n center">',date(DATE_FORMAT,$entry['creation_time']),'</td>';
+		if ($list) {
+			// sort list
+			//
+			switch ($MYREQUEST['SORT2']) {
+				case "A":	krsort($list);	break;
+				case "D":	ksort($list);	break;
+			}
 
-        if($fieldname=='info') {
-          if($entry['ttl'])
-            echo '<td class="td-n center">'.$entry['ttl'].' seconds</td>';
-          else
-            echo '<td class="td-n center">None</td>';
-        }
-        if ($entry['deletion_time']) {
+			// output list
+			$i=0;
+			foreach($list as $k => $entry) {
+				if(!$MYREQUEST['SEARCH'] || preg_match($MYREQUEST['SEARCH'], $entry[$fieldname]) != 0) {
+					$sh=md5($entry["info"]);
+					$field_value = htmlentities(strip_tags($entry[$fieldname],''), ENT_QUOTES, 'UTF-8');
+					echo
+							'<tr id="key-'. $sh .'" class=tr-',$i%2,'>',
+					"<td class=td-0><a href=\"$MY_SELF&OB=",$MYREQUEST['OB'],"&SH=",$sh,"#key-". $sh ."\">",$field_value,'</a></td>',
+					'<td class="td-n center">',$entry['num_hits'],'</td>',
+					'<td class="td-n right">',$entry['mem_size'],'</td>',
+					'<td class="td-n center">',date(DATE_FORMAT,$entry['access_time']),'</td>',
+					'<td class="td-n center">',date(DATE_FORMAT,$entry['modification_time']),'</td>',
+					'<td class="td-n center">',date(DATE_FORMAT,$entry['creation_time']),'</td>';
 
-          echo '<td class="td-last center">', date(DATE_FORMAT,$entry['deletion_time']), '</td>';
-        } else if ($MYREQUEST['OB'] == OB_USER_CACHE) {
+					if($fieldname=='info') {
+						if($entry['ttl'])
+							echo '<td class="td-n center">'.$entry['ttl'].' seconds</td>';
+						else
+							echo '<td class="td-n center">None</td>';
+					}
+					if ($entry['deletion_time']) {
 
-          echo '<td class="td-last center">';
-          echo '[<a href="', $MY_SELF, '&OB=', $MYREQUEST['OB'], '&DU=', urlencode($entry[$fieldkey]), '">Delete Now</a>]';
-          echo '</td>';
-        } else {
-          echo '<td class="td-last center"> &nbsp; </td>';
-        }
-        echo '</tr>';
-		if ($sh == $MYREQUEST["SH"]) {
-			echo '<tr>';
-			echo '<td colspan="7"><pre>'.print_r(apcu_fetch($entry['info']), 1).'</pre></td>';
-			echo '</tr>';
+						echo '<td class="td-last center">', date(DATE_FORMAT,$entry['deletion_time']), '</td>';
+					} else if ($MYREQUEST['OB'] == OB_USER_CACHE) {
+
+						echo '<td class="td-last center">';
+						echo '[<a href="', $MY_SELF, '&OB=', $MYREQUEST['OB'], '&DU=', urlencode($entry[$fieldname]), '">Delete Now</a>]';
+						echo '</td>';
+					} else {
+						echo '<td class="td-last center"> &nbsp; </td>';
+					}
+					echo '</tr>';
+					if ($sh == $MYREQUEST["SH"]) {
+						echo '<tr>';
+						echo '<td colspan="7"><pre>'.htmlentities(print_r(apcu_fetch($entry['info']), 1)).'</pre></td>';
+						echo '</tr>';
+					}
+					$i++;
+					if ($i == $MYREQUEST['COUNT'])
+						break;
+				}
+			}
+
+		} else {
+			echo '<tr class=tr-0><td class="center" colspan=',$cols,'><i>No data</i></td></tr>';
 		}
-        $i++;
-        if ($i == $MYREQUEST['COUNT'])
-          break;
-      }
-		}
-
-	} else {
-		echo '<tr class=tr-0><td class="center" colspan=',$cols,'><i>No data</i></td></tr>';
-	}
-	echo <<< EOB
+		echo <<< EOB
 		</tbody></table>
 EOB;
 
-	if ($list && $i < count($list)) {
-		echo "<a href=\"$MY_SELF&OB=",$MYREQUEST['OB'],"&COUNT=0\"><i>",count($list)-$i,' more available...</i></a>';
-	}
+		if ($list && $i < count($list)) {
+			echo "<a href=\"$MY_SELF&OB=",$MYREQUEST['OB'],"&COUNT=0\"><i>",count($list)-$i,' more available...</i></a>';
+		}
 
-	echo <<< EOB
+		echo <<< EOB
 		</div>
 EOB;
-	break;
+		break;
 
 // -----------------------------------------------
 // Version check
 // -----------------------------------------------
-case OB_VERSION_CHECK:
-	echo <<<EOB
+	case OB_VERSION_CHECK:
+		echo <<<EOB
 		<div class="info"><h2>APCu Version Information</h2>
 		<table cellspacing=0><tbody>
 		<tr>
 		<th></th>
 		</tr>
 EOB;
-  if (defined('PROXY')) {
-    $ctxt = stream_context_create( array( 'http' => array( 'proxy' => PROXY, 'request_fulluri' => True ) ) );
-    $rss = @file_get_contents("http://pecl.php.net/feeds/pkg_apcu.rss", False, $ctxt);
-  } else {
-    $rss = @file_get_contents("http://pecl.php.net/feeds/pkg_apcu.rss");
-  }
-	if (!$rss) {
-		echo '<tr class="td-last center"><td>Unable to fetch version information.</td></tr>';
-	} else {
-		$apcversion = phpversion('apc');
-
-		preg_match('!<title>APCu ([0-9.]+)</title>!', $rss, $match);
-		echo '<tr class="tr-0 center"><td>';
-		if (version_compare($apcversion, $match[1], '>=')) {
-			echo '<div class="ok">You are running the latest version of APCu ('.$apcversion.')</div>';
-			$i = 3;
+		if (defined('PROXY')) {
+			$ctxt = stream_context_create( array( 'http' => array( 'proxy' => PROXY, 'request_fulluri' => True ) ) );
+			$rss = @file_get_contents("http://pecl.php.net/feeds/pkg_apcu.rss", False, $ctxt);
 		} else {
-			echo '<div class="failed">You are running an older version of APCu ('.$apcversion.'),
+			$rss = @file_get_contents("http://pecl.php.net/feeds/pkg_apcu.rss");
+		}
+		if (!$rss) {
+			echo '<tr class="td-last center"><td>Unable to fetch version information.</td></tr>';
+		} else {
+			$apcversion = phpversion('apc');
+
+			preg_match('!<title>APCu ([0-9.]+)</title>!', $rss, $match);
+			echo '<tr class="tr-0 center"><td>';
+			if (version_compare($apcversion, $match[1], '>=')) {
+				echo '<div class="ok">You are running the latest version of APCu ('.$apcversion.')</div>';
+				$i = 3;
+			} else {
+				echo '<div class="failed">You are running an older version of APCu ('.$apcversion.'),
 				newer version '.$match[1].' is available at <a href="http://pecl.php.net/package/APCu/'.$match[1].'">
 				http://pecl.php.net/package/APCu/'.$match[1].'</a>
 				</div>';
-			$i = -1;
-		}
-		echo '</td></tr>';
-		echo '<tr class="tr-0"><td><h3>Change Log:</h3><br/>';
-
-		preg_match_all('!<(title|description)>([^<]+)</\\1>!', $rss, $match);
-		next($match[2]); next($match[2]);
-
-		while (list(,$v) = each($match[2])) {
-			list(,$ver) = explode(' ', $v, 2);
-			if ($i < 0 && version_compare($apcversion, $ver, '>=')) {
-				break;
-			} else if (!$i--) {
-				break;
+				$i = -1;
 			}
-			echo "<b><a href=\"http://pecl.php.net/package/APCu/$ver\">".htmlspecialchars($v, ENT_QUOTES, 'UTF-8')."</a></b><br><blockquote>";
-			echo nl2br(htmlspecialchars(current($match[2]), ENT_QUOTES, 'UTF-8'))."</blockquote>";
-			next($match[2]);
+			echo '</td></tr>';
+			echo '<tr class="tr-0"><td><h3>Change Log:</h3><br/>';
+
+			preg_match_all('!<(title|description)>([^<]+)</\\1>!', $rss, $match);
+			next($match[2]); next($match[2]);
+
+			while (list(,$v) = each($match[2])) {
+				list(,$ver) = explode(' ', $v, 2);
+				if ($i < 0 && version_compare($apcversion, $ver, '>=')) {
+					break;
+				} else if (!$i--) {
+					break;
+				}
+				echo "<b><a href=\"http://pecl.php.net/package/APCu/$ver\">".htmlspecialchars($v, ENT_QUOTES, 'UTF-8')."</a></b><br><blockquote>";
+				echo nl2br(htmlspecialchars(current($match[2]), ENT_QUOTES, 'UTF-8'))."</blockquote>";
+				next($match[2]);
+			}
+			echo '</td></tr>';
 		}
-		echo '</td></tr>';
-	}
-	echo <<< EOB
+		echo <<< EOB
 		</tbody></table>
 		</div>
 EOB;
-	break;
+		break;
 
 }
 
